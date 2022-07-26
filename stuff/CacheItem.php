@@ -7,13 +7,12 @@ namespace Stuff\Webclient\Cache\Adapter\PsrCache;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
-use InvalidArgumentException;
 use Psr\Cache\CacheItemInterface;
 
-final class CacheItem implements CacheItemInterface
+class CacheItem implements CacheItemInterface
 {
     private string $key;
-    private $value;
+    private mixed $value;
     private ?DateTimeInterface $expires;
 
     public function __construct(string $key, $value = null)
@@ -28,7 +27,7 @@ final class CacheItem implements CacheItemInterface
         return $this->key;
     }
 
-    public function get()
+    public function get(): mixed
     {
         return $this->value;
     }
@@ -38,25 +37,23 @@ final class CacheItem implements CacheItemInterface
         return $this->value !== null;
     }
 
-    public function set($value)
+    public function set(mixed $value): static
     {
         $this->value = $value;
+        return $this;
     }
 
-    public function expiresAt($expiration)
+    public function expiresAt(?DateTimeInterface $expiration): static
     {
         if (is_null($expiration)) {
             $this->expires = null;
             return $this;
         }
-        if ($expiration instanceof DateTimeInterface) {
-            $this->expires = $expiration;
-            return $this;
-        }
-        throw new InvalidArgumentException('expiration must be null or DateTimeInterface');
+        $this->expires = $expiration;
+        return $this;
     }
 
-    public function expiresAfter($time)
+    public function expiresAfter(int|DateInterval|null $time): static
     {
         if (is_null($time)) {
             $this->expires = null;
@@ -66,11 +63,8 @@ final class CacheItem implements CacheItemInterface
             $this->expires = (new DateTimeImmutable())->modify('+' . $time . ' seconds');
             return $this;
         }
-        if ($time instanceof DateInterval) {
-            $this->expires = (new DateTimeImmutable())->add($time);
-            return $this;
-        }
-        throw new InvalidArgumentException('time must be null, int or DateInterval');
+        $this->expires = (new DateTimeImmutable())->add($time);
+        return $this;
     }
 
     public function getExpires(): ?DateTimeInterface

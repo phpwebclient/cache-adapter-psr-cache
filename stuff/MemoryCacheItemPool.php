@@ -20,7 +20,7 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     private array $deferred = [];
 
-    public function getItem($key)
+    public function getItem(string $key): CacheItemInterface
     {
         if (!$this->hasItem($key)) {
             return new CacheItem($key);
@@ -28,7 +28,7 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
         return $this->storage[$key];
     }
 
-    public function getItems(array $keys = array())
+    public function getItems(array $keys = []): iterable
     {
         $result = [];
         foreach ($keys as $key) {
@@ -37,7 +37,7 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
         return $result;
     }
 
-    public function hasItem($key)
+    public function hasItem(string $key): bool
     {
         if (!array_key_exists($key, $this->storage)) {
             return false;
@@ -52,14 +52,14 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
         return false;
     }
 
-    public function clear()
+    public function clear(): bool
     {
         $this->storage = [];
         $this->deferred = [];
         return true;
     }
 
-    public function deleteItem($key)
+    public function deleteItem(string $key): bool
     {
         if ($this->hasItem($key)) {
             unset($this->storage[$key]);
@@ -67,7 +67,7 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
         return true;
     }
 
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): bool
     {
         $result = true;
         foreach ($keys as $key) {
@@ -78,21 +78,24 @@ final class MemoryCacheItemPool implements CacheItemPoolInterface
         return $result;
     }
 
-    public function save(CacheItemInterface $item)
+    public function save(CacheItemInterface $item): bool
     {
         $this->storage[$item->getKey()] = $item;
+        return true;
     }
 
-    public function saveDeferred(CacheItemInterface $item)
+    public function saveDeferred(CacheItemInterface $item): bool
     {
         $this->deferred[$item->getKey()] = $item;
+        return true;
     }
 
-    public function commit()
+    public function commit(): bool
     {
         foreach ($this->deferred as $item) {
             $this->storage[$item->getKey()] = $item;
         }
         $this->deferred = [];
+        return true;
     }
 }
